@@ -158,32 +158,25 @@
     var chatId = '854113551';
     var telegramUrl = 'https://api.telegram.org/bot' + botToken + '/sendMessage';
 
-    // RENTAL APPLICATION FORM SUBMISSION
-    $('#application-form').on('submit', function(e) {
-        e.preventDefault();
-        
-        // Collect form data
-        var formData = new FormData(this);
-        var message = '🏠 New Rental Application:\n\n';
-        for (var pair of formData.entries()) {
-            message += '• ' + formatLabel(pair[0]) + ': ' + pair[1] + '\n';
-        }
-        
-        sendToTelegram(message);
-    });
-
     // CONTACT FORM SUBMISSION
     $('#contact-form').on('submit', function(e) {
         e.preventDefault();
         
         // Collect form data
         var formData = new FormData(this);
-        var message = '📧 New Contact Message:\n\n';
+        var message = 'New Contact Message:\n\n';
         for (var pair of formData.entries()) {
             message += '• ' + formatLabel(pair[0]) + ': ' + pair[1] + '\n';
         }
         
-        sendToTelegram(message);
+        sendToTelegram(message, {
+            onSuccess: function() {
+                $('#contact-form')[0].reset();
+            },
+            onFailure: function() {
+                alert('Unable to send your message right now. Please try again later.');
+            }
+        });
     });
 
     // Helper function to format field names
@@ -192,7 +185,12 @@
     }
 
     // Helper function to send message to Telegram
-    function sendToTelegram(message) {
+    function sendToTelegram(message, options) {
+        var settings = options || {};
+        var safeMessage = message.length > 3800
+            ? message.slice(0, 3797) + '...'
+            : message;
+
         fetch(telegramUrl, {
             method: 'POST',
             headers: {
@@ -200,25 +198,27 @@
             },
             body: JSON.stringify({
                 chat_id: chatId,
-                text: message
+                text: safeMessage
             })
         })
         .then(response => response.json())
         .then(data => {
             if (data.ok) {
-                showThankYouMessage();
-                $('form').trigger('reset');
-                updateFormProgress();
+                if (typeof settings.onSuccess === 'function') {
+                    settings.onSuccess();
+                }
             } else {
-                alert('Error sending message. Please try again.');
+                console.error('Telegram API error:', data);
+                if (typeof settings.onFailure === 'function') {
+                    settings.onFailure(data);
+                }
             }
         })
         .catch(error => {
             console.error('Error:', error);
-            // Show thank you message regardless of Telegram API success
-            showThankYouMessage();
-            $('form').trigger('reset');
-            updateFormProgress();
+            if (typeof settings.onFailure === 'function') {
+                settings.onFailure(error);
+            }
         });
     }
 
@@ -271,15 +271,47 @@
         $('#application-form').on('submit', function(e) {
             e.preventDefault();
             var isValid = true;
+            var form = $(this);
 
             // Clear previous errors
             $('.error-message').removeClass('show').text('');
+            form.find('[aria-invalid="true"]').removeAttr('aria-invalid');
 
             // Validate required fields
-            $('input[required]').each(function() {
-                if (!$(this).val().trim()) {
-                    showError($(this), 'This field is required');
+            form.find('input[required], textarea[required], select[required]').each(function() {
+                var field = $(this);
+                var type = field.attr('type');
+
+                if (type === 'radio') {
+                    return;
+                }
+
+                if (!field.val().trim()) {
+                    showError(field, 'This field is required');
                     isValid = false;
+                }
+            });
+
+            form.find('input[type="radio"][required]').each(function() {
+                var field = $(this);
+                var groupName = field.attr('name');
+
+                if (!groupName || form.data('validated-' + groupName)) {
+                    return;
+                }
+
+                form.data('validated-' + groupName, true);
+
+                if (!form.find('input[name="' + groupName + '"]:checked').length) {
+                    showError(field, 'Please select an option');
+                    isValid = false;
+                }
+            });
+
+            form.find('input[type="radio"][required]').each(function() {
+                var groupName = $(this).attr('name');
+                if (groupName) {
+                    form.removeData('validated-' + groupName);
                 }
             });
 
@@ -298,8 +330,23 @@
             }
 
             if (isValid) {
-                // Show success message
-                showSuccess();
+                var formData = new FormData(this);
+                var message = 'New Rental Application:\n\n';
+
+                for (var pair of formData.entries()) {
+                    message += '• ' + formatLabel(pair[0]) + ': ' + pair[1] + '\n';
+                }
+
+                sendToTelegram(message, {
+                    onSuccess: function() {
+                        showThankYouMessage();
+                        form[0].reset();
+                        updateFormProgress();
+                    },
+                    onFailure: function() {
+                        alert('Unable to send your application right now. Please try again later.');
+                    }
+                });
             }
         });
 
@@ -310,7 +357,19 @@
     }
 
     function showError(field, message) {
-        var errorDiv = $('#' + field.attr('id') + '-error');
+        var fieldId = field.attr('id');
+        var errorDiv = fieldId ? $('#' + fieldId + '-error') : $();
+
+        if (!errorDiv.length) {
+            var formGroup = field.closest('.form-group');
+            errorDiv = formGroup.find('.error-message');
+
+            if (!errorDiv.length) {
+                errorDiv = $('<div class="error-message" role="alert" aria-live="polite"></div>');
+                formGroup.append(errorDiv);
+            }
+        }
+
         errorDiv.text(message).addClass('show');
         field.attr('aria-invalid', 'true');
     }
