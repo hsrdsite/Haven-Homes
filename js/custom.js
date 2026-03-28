@@ -246,14 +246,22 @@
     // Show thank you message and hide form
     function showThankYouMessage() {
         var currentScrollTop = $(window).scrollTop();
+        
+        // Disable scrolling temporarily
+        document.body.style.overflow = 'hidden';
 
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
         }
 
         $('#application-form').fadeOut(300, function() {
-            $(this).parent().find('#thank-you-message').fadeIn(300);
-            preserveScrollPosition(currentScrollTop);
+            $(this).parent().find('#thank-you-message').fadeIn(300, function() {
+                // Restore scrolling and maintain position
+                document.body.style.overflow = '';
+                setTimeout(function() {
+                    window.scrollTo(0, currentScrollTop);
+                }, 100);
+            });
         });
     }
 

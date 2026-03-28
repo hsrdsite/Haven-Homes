@@ -398,6 +398,31 @@ http://www.tooplate.com/view/2106-soft-landing
     color: var(--label-color);
   }
 
+  /* Error Message Styling */
+  .error-message {
+    display: none;
+    color: #e74c3c;
+    font-size: 13px;
+    font-weight: 600;
+    margin-top: 5px;
+    margin-bottom: -5px;
+  }
+
+  .error-message.show {
+    display: block;
+  }
+
+  /* Style inputs with errors */
+  .form-control[aria-invalid="true"] {
+    border-color: #e74c3c;
+    background-color: #fff5f5;
+  }
+
+  .form-control[aria-invalid="true"]:focus {
+    border-color: #e74c3c;
+    box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1);
+  }
+
   .form-actions {
     margin-top: 40px;
     text-align: center;
