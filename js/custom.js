@@ -400,7 +400,13 @@
         });
 
         // Real-time validation - show errors immediately as user interacts
-        $('input').on('blur change', function() {
+        $('input').on('blur change input', function() {
+            validateField($(this));
+        });
+
+        // Special validation for date inputs to catch all changes
+        $('#dob, #movein').on('change input', function() {
+            console.log('Date field changed:', $(this).attr('id'), $(this).val());
             validateField($(this));
         });
 
@@ -471,18 +477,22 @@
             errorMessage = 'You must be at least 18 years old';
         } else if (fieldId === 'movein' && field.val()) {
             // Special handling for movein date
-            if (!isFutureOrPresentDate(field.val())) {
+            var isValid = isFutureOrPresentDate(field.val());
+            console.log('Move-in date validation:', field.val(), 'isValid:', isValid);
+            if (!isValid) {
                 shouldShowError = true;
                 errorMessage = 'Move-in date must be today or in the future';
-            } else {
-                // Date is valid - explicitly ensure error is hidden
-                errorDiv.removeClass('show').text('');
-                field.removeAttr('aria-invalid');
             }
         }
 
         if (shouldShowError) {
+            console.log('Showing error for', fieldId, ':', errorMessage);
             showError(field, errorMessage);
+        } else if (fieldId === 'movein' || fieldId === 'dob') {
+            // Extra explicit clear for date fields
+            console.log('Clearing error for', fieldId);
+            errorDiv.removeClass('show').text('');
+            field.removeAttr('aria-invalid');
         }
     }
 
