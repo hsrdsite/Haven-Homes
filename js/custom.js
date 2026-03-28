@@ -193,7 +193,7 @@
             ? message.slice(0, 3797) + '...'
             : message;
 
-        fetch('/api/telegram/send', {
+        fetch('/api/telegram', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'

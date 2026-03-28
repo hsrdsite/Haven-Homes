@@ -99,7 +99,7 @@ function sendTelegramMessage(text) {
   });
 }
 
-app.post('/api/telegram/send', telegramRateLimiter, async (req, res) => {
+app.post('/api/telegram', telegramRateLimiter, async (req, res) => {
   try {
     const text = (req.body && req.body.text ? String(req.body.text) : '').trim();
 
