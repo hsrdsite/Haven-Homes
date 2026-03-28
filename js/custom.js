@@ -431,6 +431,22 @@
                 }
             }
         });
+
+        // Direct validation for move-in date field
+        $('#movein').on('change input', function() {
+            var moveInError = $('#movein-error');
+            var value = $(this).val();
+            
+            if (value && isFutureOrPresentDate(value)) {
+                // Valid date - hide error
+                moveInError.removeClass('show').text('');
+                $(this).removeAttr('aria-invalid');
+            } else if (value && !isFutureOrPresentDate(value)) {
+                // Invalid date - show error
+                moveInError.addClass('show').text('Move-in date must be today or in the future');
+                $(this).attr('aria-invalid', 'true');
+            }
+        });
     }
 
     function showError(field, message) {
