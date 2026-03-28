@@ -236,42 +236,31 @@
     }
 
     function preserveScrollPosition(scrollTop) {
-        // Keep viewport anchored during fade transitions to avoid scroll jumps.
-        // Use setTimeout to ensure scroll happens after DOM updates
-        setTimeout(function() {
-            window.scrollTo(0, scrollTop);
-        }, 350);
+        // Position preserved naturally by DOM structure
     }
 
     // Show thank you message and hide form
     function showThankYouMessage() {
-        var currentScrollTop = $(window).scrollTop();
-        
-        // Disable scrolling temporarily
-        document.body.style.overflow = 'hidden';
-
         if (document.activeElement && typeof document.activeElement.blur === 'function') {
             document.activeElement.blur();
         }
 
         $('#application-form').fadeOut(300, function() {
-            $(this).parent().find('#thank-you-message').fadeIn(300, function() {
-                // Restore scrolling and maintain position
-                document.body.style.overflow = '';
-                setTimeout(function() {
-                    window.scrollTo(0, currentScrollTop);
-                }, 100);
+            var thankYouMsg = $(this).parent().find('#thank-you-message');
+            thankYouMsg.fadeIn(300, function() {
+                // Scroll smoothly to the thank you message section
+                var applicationSection = document.getElementById('application');
+                if (applicationSection) {
+                    applicationSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
             });
         });
     }
 
     // Handle "Submit Another Application" button
     $('.btn-new-application').on('click', function() {
-        var currentScrollTop = $(window).scrollTop();
-
         $('#thank-you-message').fadeOut(300, function() {
             $('#application-form').fadeIn(300);
-            preserveScrollPosition(currentScrollTop);
         });
     });
 
