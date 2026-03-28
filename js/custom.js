@@ -488,10 +488,19 @@
     }
 
     function isFutureOrPresentDate(dateString) {
-        var selectedDate = new Date(dateString);
+        // Parse date string in YYYY-MM-DD format
+        var parts = dateString.split('-');
+        if (parts.length !== 3) return false;
+        
+        var year = parseInt(parts[0], 10);
+        var month = parseInt(parts[1], 10) - 1; // Month is 0-indexed
+        var day = parseInt(parts[2], 10);
+        
+        // Create date in local timezone (not UTC)
+        var selectedDate = new Date(year, month, day);
         var today = new Date();
         
-        // Set time to start of day for fair comparison
+        // Set both to start of day for fair comparison
         today.setHours(0, 0, 0, 0);
         selectedDate.setHours(0, 0, 0, 0);
         
