@@ -237,7 +237,10 @@
 
     function preserveScrollPosition(scrollTop) {
         // Keep viewport anchored during fade transitions to avoid scroll jumps.
-        window.scrollTo(0, scrollTop);
+        // Use setTimeout to ensure scroll happens after DOM updates
+        setTimeout(function() {
+            window.scrollTo(0, scrollTop);
+        }, 350);
     }
 
     // Show thank you message and hide form
@@ -399,9 +402,31 @@
             }
         });
 
-        // Real-time validation
-        $('input').on('blur', function() {
+        // Real-time validation - show errors immediately as user interacts
+        $('input').on('blur change', function() {
             validateField($(this));
+        });
+
+        $('textarea').on('blur change input', function() {
+            var field = $(this);
+            if (field.prop('required') && !field.val().trim()) {
+                showError(field, 'This field is required');
+            } else {
+                var errorDiv = field.closest('.form-group').find('.error-message');
+                errorDiv.removeClass('show').text('');
+                field.removeAttr('aria-invalid');
+            }
+        });
+
+        // Show validation errors as user selects radio buttons
+        $('input[type="radio"]').on('change', function() {
+            var groupName = $(this).attr('name');
+            if (groupName) {
+                var group = $('input[name="' + groupName + '"]').first();
+                if (group.prop('required') && $('input[name="' + groupName + '"]:checked').length) {
+                    group.closest('.form-group').find('.error-message').removeClass('show').text('');
+                }
+            }
         });
     }
 
@@ -424,7 +449,8 @@
     }
 
     function validateField(field) {
-        var errorDiv = $('#' + field.attr('id') + '-error');
+        var fieldId = field.attr('id');
+        var errorDiv = $('#' + fieldId + '-error');
         errorDiv.removeClass('show').text('');
         field.removeAttr('aria-invalid');
 
@@ -432,8 +458,12 @@
             showError(field, 'This field is required');
         } else if (field.attr('type') === 'email' && field.val() && !isValidEmail(field.val())) {
             showError(field, 'Please enter a valid email address');
-        } else if (field.attr('id') === 'phone' && field.val() && !isValidPhone(field.val())) {
+        } else if (fieldId === 'phone' && field.val() && !isValidPhone(field.val())) {
             showError(field, 'Please enter a valid phone number');
+        } else if (fieldId === 'dob' && field.val() && !isOldEnough18(field.val())) {
+            showError(field, 'You must be at least 18 years old');
+        } else if (fieldId === 'movein' && field.val() && !isFutureOrPresentDate(field.val())) {
+            showError(field, 'Move-in date must be today or in the future');
         }
     }
 
