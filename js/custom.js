@@ -152,15 +152,8 @@
     updateFormProgress();
 
 
-    // FORM SUBMISSION TO TELEGRAM
-    // Telegram bot details
-    var botToken = '8714639907:AAEyMOtM6nk4BQlRceIlvN3OnZlJ84xtAQg';
-    var chatId = '854113551';
-    var telegramUrl = 'https://api.telegram.org/bot'+botToken+'/sendMessage';
-
-    // NOTE:
-    // If Telegram delivery stops working with "chat not found",
-    // send /start to the bot again from the target account and re-check chatId.
+    // FORM SUBMISSION VIA SERVER API
+    // Telegram credentials are kept server-side and never exposed in browser code.
 
     // CONTACT FORM SUBMISSION
     $('#contact-form').on('submit', function(e) {
@@ -200,13 +193,12 @@
             ? message.slice(0, 3797) + '...'
             : message;
 
-        fetch(telegramUrl, {
+        fetch('/api/telegram/send', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({
-                chat_id: chatId,
                 text: safeMessage
             })
         })
