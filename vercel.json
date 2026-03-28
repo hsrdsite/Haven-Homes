@@ -1,14 +1,27 @@
 {
-  "buildCommand": "echo 'No build needed - static site with serverless API'",
-  "public": true,
-  "rewrites": [
+  "version": 2,
+  "builds": [
     {
-      "source": "/api/:path*",
-      "destination": "/api/:path*"
+      "src": "api/**/*.js",
+      "use": "@vercel/node"
     },
     {
-      "source": "/(.*)",
-      "destination": "/index.html"
+      "src": "index.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/(.*)",
+      "dest": "/api/$1"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    },
+    {
+      "src": "/(.+)",
+      "dest": "/$1"
     }
   ]
 }
