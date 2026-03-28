@@ -448,19 +448,41 @@
     function validateField(field) {
         var fieldId = field.attr('id');
         var errorDiv = $('#' + fieldId + '-error');
+        
+        // Always clear error first
         errorDiv.removeClass('show').text('');
         field.removeAttr('aria-invalid');
 
+        // Then check if field needs validation
+        var shouldShowError = false;
+        var errorMessage = '';
+
         if (field.prop('required') && !field.val().trim()) {
-            showError(field, 'This field is required');
+            shouldShowError = true;
+            errorMessage = 'This field is required';
         } else if (field.attr('type') === 'email' && field.val() && !isValidEmail(field.val())) {
-            showError(field, 'Please enter a valid email address');
+            shouldShowError = true;
+            errorMessage = 'Please enter a valid email address';
         } else if (fieldId === 'phone' && field.val() && !isValidPhone(field.val())) {
-            showError(field, 'Please enter a valid phone number');
+            shouldShowError = true;
+            errorMessage = 'Please enter a valid phone number';
         } else if (fieldId === 'dob' && field.val() && !isOldEnough18(field.val())) {
-            showError(field, 'You must be at least 18 years old');
-        } else if (fieldId === 'movein' && field.val() && !isFutureOrPresentDate(field.val())) {
-            showError(field, 'Move-in date must be today or in the future');
+            shouldShowError = true;
+            errorMessage = 'You must be at least 18 years old';
+        } else if (fieldId === 'movein' && field.val()) {
+            // Special handling for movein date
+            if (!isFutureOrPresentDate(field.val())) {
+                shouldShowError = true;
+                errorMessage = 'Move-in date must be today or in the future';
+            } else {
+                // Date is valid - explicitly ensure error is hidden
+                errorDiv.removeClass('show').text('');
+                field.removeAttr('aria-invalid');
+            }
+        }
+
+        if (shouldShowError) {
+            showError(field, errorMessage);
         }
     }
 
