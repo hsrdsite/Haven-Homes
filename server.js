@@ -127,6 +127,10 @@ app.post('/api/telegram', telegramRateLimiter, async (req, res) => {
   }
 });
 
+app.post('*', (req, res) => {
+  res.status(404).json({ ok: false, description: 'Endpoint not found. Please use /api/telegram for contact messages.' });
+});
+
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'index.html'));
 });

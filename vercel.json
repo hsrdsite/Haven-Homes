@@ -1,5 +1,12 @@
 {
   "version": 2,
   "buildCommand": "echo Building...",
-  "outputDirectory": "."
+  "outputDirectory": ".",
+  "public": true,
+  "rewrites": [
+    {
+      "source": "/((?!api|css|js|images|fonts|[^/]+\\.[^/]+$).*)",
+      "destination": "/index.html"
+    }
+  ]
 }
