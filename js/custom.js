@@ -153,10 +153,14 @@
 
 
     // FORM SUBMISSION TO TELEGRAM
-    // Telegram bot details - replace with your own
+    // Telegram bot details
     var botToken = '8714639907:AAEyMOtM6nk4BQlRceIlvN3OnZlJ84xtAQg';
     var chatId = '854113551';
-    var telegramUrl = 'https://api.telegram.org/bot' + botToken + '/sendMessage';
+    var telegramUrl = 'https://api.telegram.org/bot'+botToken+'/sendMessage';
+
+    // NOTE:
+    // If Telegram delivery stops working with "chat not found",
+    // send /start to the bot again from the target account and re-check chatId.
 
     // CONTACT FORM SUBMISSION
     $('#contact-form').on('submit', function(e) {
@@ -173,8 +177,8 @@
             onSuccess: function() {
                 $('#contact-form')[0].reset();
             },
-            onFailure: function() {
-                alert('Unable to send your message right now. Please try again later.');
+            onFailure: function(error) {
+                alert('Unable to send your message: ' + getTelegramErrorMessage(error));
             }
         });
     });
@@ -220,6 +224,18 @@
                 settings.onFailure(error);
             }
         });
+    }
+
+    function getTelegramErrorMessage(error) {
+        if (error && error.description) {
+            return error.description;
+        }
+
+        if (error && error.message) {
+            return error.message;
+        }
+
+        return 'Please try again later.';
     }
 
     // Show thank you message and hide form
@@ -343,8 +359,8 @@
                         form[0].reset();
                         updateFormProgress();
                     },
-                    onFailure: function() {
-                        alert('Unable to send your application right now. Please try again later.');
+                    onFailure: function(error) {
+                        alert('Unable to send your application: ' + getTelegramErrorMessage(error));
                     }
                 });
             }
