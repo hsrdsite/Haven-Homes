@@ -3,6 +3,12 @@
   "buildCommand": "echo Building...",
   "outputDirectory": ".",
   "public": true,
+  "functions": {
+    "api/telegram.js": {
+      "memory": 512,
+      "maxDuration": 10
+    }
+  },
   "headers": [
     {
       "source": "/(.*)",

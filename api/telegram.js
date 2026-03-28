@@ -51,14 +51,52 @@ function sendTelegramMessage(text) {
   });
 }
 
+// Helper to read body from request stream
+async function readBody(req) {
+  return new Promise((resolve, reject) => {
+    let body = '';
+    
+    req.on('data', (chunk) => {
+      body += chunk.toString();
+    });
+    
+    req.on('end', () => {
+      try {
+        resolve(JSON.parse(body || '{}'));
+      } catch (error) {
+        reject(new Error('Invalid JSON in request body'));
+      }
+    });
+    
+    req.on('error', reject);
+  });
+}
+
 module.exports = async (req, res) => {
+  // Set CORS headers for browser requests
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+  // Handle preflight requests
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
+
   // Only allow POST requests
   if (req.method !== 'POST') {
     return res.status(405).json({ ok: false, description: 'Method not allowed.' });
   }
 
   try {
-    const text = (req.body && req.body.text ? String(req.body.text) : '').trim();
+    // Parse body from request stream or use parsed body
+    let body = req.body;
+    
+    if (!body || typeof body !== 'object') {
+      body = await readBody(req);
+    }
+
+    const text = (body && body.text ? String(body.text) : '').trim();
 
     if (!text) {
       return res.status(400).json({ ok: false, description: 'Message text is required.' });
@@ -75,6 +113,7 @@ module.exports = async (req, res) => {
       description: telegramResponse.description || 'Telegram API rejected the request.'
     });
   } catch (error) {
+    console.error('API Error:', error.message);
     return res.status(500).json({
       ok: false,
       description: error.message || 'Server error while sending message.'
