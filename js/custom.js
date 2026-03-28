@@ -298,20 +298,24 @@
     function initFormValidation() {
         $('#application-form').on('submit', function(e) {
             e.preventDefault();
-            var isValid = true;
             var form = $(this);
+            var isValid = true;
 
             // Clear previous errors
             $('.error-message').removeClass('show').text('');
             form.find('[aria-invalid="true"]').removeAttr('aria-invalid');
 
-            // Validate required fields
-            form.find('input[required], textarea[required], select[required]').each(function() {
+            // Validate all required fields
+            var requiredFields = form.find('[required]');
+            
+            requiredFields.each(function() {
                 var field = $(this);
                 var type = field.attr('type');
-
-                if (type === 'radio') {
-                    return;
+                var isRadio = type === 'radio';
+                var isCheckbox = type === 'checkbox';
+                
+                if (isRadio || isCheckbox) {
+                    return; // Handle separately below
                 }
 
                 if (!field.val().trim()) {
@@ -320,39 +324,30 @@
                 }
             });
 
+            // Validate radio button groups
+            var radioGroups = new Set();
             form.find('input[type="radio"][required]').each(function() {
-                var field = $(this);
-                var groupName = field.attr('name');
-
-                if (!groupName || form.data('validated-' + groupName)) {
-                    return;
-                }
-
-                form.data('validated-' + groupName, true);
-
-                if (!form.find('input[name="' + groupName + '"]:checked').length) {
-                    showError(field, 'Please select an option');
-                    isValid = false;
-                }
+                radioGroups.add($(this).attr('name'));
             });
 
-            form.find('input[type="radio"][required]').each(function() {
-                var groupName = $(this).attr('name');
-                if (groupName) {
-                    form.removeData('validated-' + groupName);
+            radioGroups.forEach(function(groupName) {
+                if (!form.find('input[name="' + groupName + '"]:checked').length) {
+                    var firstRadio = form.find('input[name="' + groupName + '"]').first();
+                    showError(firstRadio, 'Please select an option');
+                    isValid = false;
                 }
             });
 
             // Email validation
             var email = $('#email');
-            if (email.val() && !isValidEmail(email.val())) {
+            if (email.length && email.val() && !isValidEmail(email.val())) {
                 showError(email, 'Please enter a valid email address');
                 isValid = false;
             }
 
             // Phone validation
             var phone = $('#phone');
-            if (phone.val() && !isValidPhone(phone.val())) {
+            if (phone.length && phone.val() && !isValidPhone(phone.val())) {
                 showError(phone, 'Please enter a valid phone number');
                 isValid = false;
             }
@@ -372,9 +367,12 @@
                         updateFormProgress();
                     },
                     onFailure: function(error) {
+                        console.error('Form submission failed:', error);
                         alert('Unable to send your application: ' + getTelegramErrorMessage(error));
                     }
                 });
+            } else {
+                console.warn('Form validation failed');
             }
         });
 
