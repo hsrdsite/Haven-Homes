@@ -176,11 +176,16 @@
         sendToTelegram(message, {
             onSuccess: function() {
                 $('#contact-form')[0].reset();
+                $('#contact-success-message').stop(true, true).fadeIn(200).delay(4000).fadeOut(300);
             },
             onFailure: function(error) {
                 alert('Unable to send your message: ' + getTelegramErrorMessage(error));
             }
         });
+    });
+
+    $('#contact-form').on('input', 'input, textarea', function() {
+        $('#contact-success-message').stop(true, true).fadeOut(150);
     });
 
     // Helper function to format field names
@@ -238,17 +243,32 @@
         return 'Please try again later.';
     }
 
+    function preserveScrollPosition(scrollTop) {
+        // Keep viewport anchored during fade transitions to avoid scroll jumps.
+        window.scrollTo(0, scrollTop);
+    }
+
     // Show thank you message and hide form
     function showThankYouMessage() {
+        var currentScrollTop = $(window).scrollTop();
+
+        if (document.activeElement && typeof document.activeElement.blur === 'function') {
+            document.activeElement.blur();
+        }
+
         $('#application-form').fadeOut(300, function() {
             $(this).parent().find('#thank-you-message').fadeIn(300);
+            preserveScrollPosition(currentScrollTop);
         });
     }
 
     // Handle "Submit Another Application" button
     $('.btn-new-application').on('click', function() {
+        var currentScrollTop = $(window).scrollTop();
+
         $('#thank-you-message').fadeOut(300, function() {
             $('#application-form').fadeIn(300);
+            preserveScrollPosition(currentScrollTop);
         });
     });
 

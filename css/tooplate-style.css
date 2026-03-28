@@ -1570,6 +1570,17 @@ http://www.tooplate.com/view/2106-soft-landing
     color: #ffffff !important;
   }
 
+  .contact-success-message {
+    margin-top: 16px;
+    padding: 12px 14px;
+    border-radius: 8px;
+    background: rgba(41, 202, 142, 0.12);
+    border: 1px solid rgba(41, 202, 142, 0.4);
+    color: #1e7f5b;
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
   .contact-social {
     text-align: center;
     margin-bottom: 40px;
@@ -1881,5 +1892,9 @@ http://www.tooplate.com/view/2106-soft-landing
     #contact-form input[type='submit'] {
       width: 100%;
       margin-top: 25px;
+    }
+
+    .contact-success-message {
+      text-align: left;
     }
   }
