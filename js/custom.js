@@ -455,44 +455,51 @@
         var fieldId = field.attr('id');
         var errorDiv = $('#' + fieldId + '-error');
         
+        console.log('validateField called for:', fieldId, 'value:', field.val());
+        
         // Always clear error first
-        errorDiv.removeClass('show').text('');
+        if (errorDiv.length) {
+            errorDiv.removeClass('show').text('');
+        }
         field.removeAttr('aria-invalid');
 
-        // Then check if field needs validation
-        var shouldShowError = false;
+        // Skip validation if field is empty and not required
+        if (!field.val().trim() && !field.prop('required')) {
+            return;
+        }
+
+        // Check if field needs validation
         var errorMessage = '';
 
         if (field.prop('required') && !field.val().trim()) {
-            shouldShowError = true;
             errorMessage = 'This field is required';
         } else if (field.attr('type') === 'email' && field.val() && !isValidEmail(field.val())) {
-            shouldShowError = true;
             errorMessage = 'Please enter a valid email address';
         } else if (fieldId === 'phone' && field.val() && !isValidPhone(field.val())) {
-            shouldShowError = true;
             errorMessage = 'Please enter a valid phone number';
         } else if (fieldId === 'dob' && field.val() && !isOldEnough18(field.val())) {
-            shouldShowError = true;
             errorMessage = 'You must be at least 18 years old';
         } else if (fieldId === 'movein' && field.val()) {
             // Special handling for movein date
             var isValid = isFutureOrPresentDate(field.val());
-            console.log('Move-in date validation:', field.val(), 'isValid:', isValid);
+            console.log('Move-in date check - value:', field.val(), 'isValid:', isValid);
             if (!isValid) {
-                shouldShowError = true;
                 errorMessage = 'Move-in date must be today or in the future';
             }
         }
 
-        if (shouldShowError) {
+        // Show error if there is one
+        if (errorMessage) {
             console.log('Showing error for', fieldId, ':', errorMessage);
-            showError(field, errorMessage);
-        } else if (fieldId === 'movein' || fieldId === 'dob') {
-            // Extra explicit clear for date fields
-            console.log('Clearing error for', fieldId);
-            errorDiv.removeClass('show').text('');
-            field.removeAttr('aria-invalid');
+            if (errorDiv.length) {
+                errorDiv.text(errorMessage).addClass('show');
+            }
+            field.attr('aria-invalid', 'true');
+        } else {
+            console.log('No error for', fieldId);
+            if (errorDiv.length) {
+                errorDiv.removeClass('show').text('');
+            }
         }
     }
 
