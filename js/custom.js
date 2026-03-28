@@ -357,6 +357,22 @@
                 isValid = false;
             }
 
+            // Date of birth validation (must be 18+)
+            var dob = $('#dob');
+            if (dob.length && dob.val() && !isOldEnough18(dob.val())) {
+                console.log('Age validation failed:', dob.val());
+                showError(dob, 'You must be at least 18 years old');
+                isValid = false;
+            }
+
+            // Move-in date validation (must be present or future)
+            var moveIn = $('#movein');
+            if (moveIn.length && moveIn.val() && !isFutureOrPresentDate(moveIn.val())) {
+                console.log('Move-in date validation failed:', moveIn.val());
+                showError(moveIn, 'Move-in date must be today or in the future');
+                isValid = false;
+            }
+
             console.log('Form validation result:', isValid);
 
             if (isValid) {
@@ -429,6 +445,30 @@
     function isValidPhone(phone) {
         var re = /^[\+]?[1-9][\d]{0,15}$/;
         return re.test(phone.replace(/[\s\-\(\)]/g, ''));
+    }
+
+    function isOldEnough18(dateString) {
+        var birthDate = new Date(dateString);
+        var today = new Date();
+        var age = today.getFullYear() - birthDate.getFullYear();
+        var monthDiff = today.getMonth() - birthDate.getMonth();
+        
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+            age--;
+        }
+        
+        return age >= 18;
+    }
+
+    function isFutureOrPresentDate(dateString) {
+        var selectedDate = new Date(dateString);
+        var today = new Date();
+        
+        // Set time to start of day for fair comparison
+        today.setHours(0, 0, 0, 0);
+        selectedDate.setHours(0, 0, 0, 0);
+        
+        return selectedDate >= today;
     }
 
     function showSuccess() {
